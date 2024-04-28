@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { loginUser, logoutUser, registerUser } from '../controllers/user.controller';
+import {
+  loginUser,
+  logoutUser,
+  registerUser,
+  getUserChannelProfile,
+} from '../controllers/user.controller';
 import { uploadFile } from '../middlewares/file.middleware';
 import { verifyJwt } from '../middlewares/auth.middleware';
 
@@ -10,13 +15,13 @@ router.route('/register').post(
     { name: 'avatarImage', maxCount: 1 },
     { name: 'coverImage', maxCount: 1 },
   ]),
-  registerUser,
+  registerUser
 );
 
-router.route('/login').post(loginUser)
-
+router.route('/login').post(loginUser);
+router.route('/channelDetail/:username').get(getUserChannelProfile);
 // secured routes
 
-router.route('/logout').post(verifyJwt, logoutUser)
+router.route('/logout').post(verifyJwt, logoutUser);
 
 export { router };

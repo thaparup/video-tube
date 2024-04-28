@@ -7,7 +7,7 @@ class ApiResponse {
     statusCode: number,
     message: string,
     data: object,
-    success = true,
+    success = true
   ) {
     this.statusCode = statusCode;
     this.message = message;

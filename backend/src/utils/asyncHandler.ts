@@ -3,7 +3,6 @@ import {
   type Request,
   type RequestHandler,
   type Response,
-  response,
 } from 'express';
 
 // const asyncHandler = (fn: RequestHandler) => (req: Request, res: Response, next: NextFunction) =>{
@@ -15,12 +14,16 @@ import {
 //     }
 // }
 
-type typeRequestHandler<T> = (req: Request, res: Response) => Promise<T>;
+type typeRequestHandler<T> = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => Promise<T>;
 
 const asyncHandler =
   <T>(fn: typeRequestHandler<T>) =>
-  (req: Request, res: Response) => {
-    return fn(req, res);
+  (req: Request, res: Response, next: NextFunction) => {
+    return fn(req, res, next);
   };
 
 export { asyncHandler };

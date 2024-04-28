@@ -1,5 +1,5 @@
 import express from 'express';
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 
 const storage = multer.diskStorage({
@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
     const ext = fileName[fileName.length - 1];
     callback(
       null,
-      `file.originalname-${Math.round(Math.random() * 81837234)}.${ext}`,
+      `file.originalname-${Math.round(Math.random() * 81837234)}.${ext}`
     );
   },
 });
@@ -35,4 +35,11 @@ const uploadFile = (extensionArray: Array<string>, fileSize: number) => {
     },
   });
 };
-export { uploadFile };
+
+const upload = () => {
+  return multer({
+    storage: storage,
+  });
+};
+
+export { uploadFile, upload };

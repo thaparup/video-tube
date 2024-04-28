@@ -5,10 +5,9 @@ import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
 import { uploadOnCloudinary } from '../utils/cloudinary';
+import { Subscription } from '../models/subscription.model';
 
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
-  
-  
   const { username, email } = req.body;
   const existedUser = await User.findOne({
     $or: [{ username }, { email }],
@@ -23,6 +22,13 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
 
     try {
       const avatarImageUrl = await uploadOnCloudinary(avatarLocalPath);
+
+      if (!avatarImageUrl) {
+        throw new ApiError(
+          401,
+          "Avatar image couldn't be uploaded to the cloudinary"
+        );
+      }
       req.body.avatarImage = avatarImageUrl;
       if ('coverImage' in req.files) {
         const coverLocalPath = req.files['coverImage'][0].path;
@@ -34,7 +40,6 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
       throw new Error('Error while uploading images to the cloudinary');
     }
   }
-
 
   const parseRequestBody = registerUserSchema.safeParse(req.body);
 
@@ -50,89 +55,104 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
     const savedUser = await newUser.save();
     if (savedUser) {
       const checkingSavedUser = await User.findById(savedUser._id).select(
-        '-password -refreshToken',
+        '-password -refreshToken'
       );
       if (!checkingSavedUser) {
         new ApiError(500, 'Internal Server Error');
       }
       return res
         .status(201)
-        .json(new ApiResponse(201, 'User registered successfully!',  checkingSavedUser ||{}));
+        .json(
+          new ApiResponse(
+            201,
+            'User registered successfully!',
+            checkingSavedUser || {}
+          )
+        );
+    } else {
+      throw new ApiError(500, 'Something went wrong ');
     }
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal Server Error' })
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-
 const loginUser = asyncHandler(async (req: Request, res: Response) => {
-  
   const { email, username, password } = req.body;
   if (!email && !password) {
-    throw new ApiError(400, "username or email is required")
+    throw new ApiError(400, 'username or email is required');
   }
   const user = await User.findOne({
-    $or: [{ username }, { email }]
-  }).select('-watchHistory')
-  
+    $or: [{ username }, { email }],
+  }).select('-watchHistory');
+
   if (!user) {
-    throw new ApiError(404, "User doesn't exist")
+    throw new ApiError(404, "User doesn't exist");
   }
 
-  const isPasswordValid = await user.isPasswordCorrect(password)
- 
+  const isPasswordValid = await user.isPasswordCorrect(password);
+
   if (!isPasswordValid) {
-    throw new ApiError(401, 'Invalid user credentials')
+    throw new ApiError(401, 'Invalid user credentials');
   }
- 
+
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
   const loggedInUser = await User.findOneAndUpdate({
-    refreshToken: refreshToken
-  }).select('-password -watchHistory -refreshToken')
+    refreshToken: refreshToken,
+  }).select('-password -watchHistory -refreshToken');
 
   const options = {
     httpOnly: true,
     secure: true,
-  }
-  return res.status(200).cookie("accessToken", accessToken, options ).cookie("refreshToken", refreshToken, options).json(new ApiResponse(200, "User logged in successfully", {user: loggedInUser, accessToken, refreshToken}))
-}
-  
- 
-)
-
+  };
+  return res
+    .status(200)
+    .cookie('accessToken', accessToken, options)
+    .cookie('refreshToken', refreshToken, options)
+    .json(
+      new ApiResponse(200, 'User logged in successfully', {
+        user: loggedInUser,
+        accessToken,
+        refreshToken,
+      })
+    );
+});
 
 const logoutUser = asyncHandler(async (req: Request, res: Response) => {
-   
- 
-  
-  
-  
   await User.findByIdAndUpdate(
     req.user?._id,
     {
       $unset: {
-        refreshToken: 1 
-      }
+        refreshToken: 1,
+      },
     },
     {
-      new: true
+      new: true,
     }
-  )
+  );
 
   const options = {
     httpOnly: true,
-    secure: true
-  }
+    secure: true,
+  };
 
   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
-    .json(new ApiResponse(200, "User logged Out", {}))
-    
-  })  
+    .clearCookie('accessToken', options)
+    .clearCookie('refreshToken', options)
+    .json(new ApiResponse(200, 'User logged Out', {}));
+});
 
+const getUserChannelProfile = asyncHandler(
+  async (req: Request, res: Response) => {
+    const username = req.params;
 
-export { registerUser, loginUser, logoutUser };
+    const userDetail = await User.findOne(username).select(
+      '-refreshToken, -password, -watchHistory, -email'
+    );
+  }
+);
+
+export { registerUser, loginUser, logoutUser, getUserChannelProfile };
