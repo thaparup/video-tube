@@ -14,8 +14,10 @@ app.use(cookieParser());
 import { router as userRouter } from './routes/user.routes';
 import { router as videoRouter } from './routes/video.routes';
 import { router as subRouter } from './routes/subscribe.routes';
+import { router as commentRouter } from './routes/comment.routes';
 
-app.use('/api/user/', userRouter);
-app.use('/api/video/', videoRouter);
+app.use('/api/user', userRouter);
+app.use('/api/video', videoRouter);
 app.use('/api/sub', subRouter);
+app.use('/api/comments', commentRouter);
 export { app };
