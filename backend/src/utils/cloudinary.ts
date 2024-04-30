@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { v2 as cloudinary } from 'cloudinary';
+import { ApiError } from './ApiError';
 
 const uploadOnCloudinary = async (localFilePath: string) => {
     try {
@@ -39,6 +40,9 @@ const deleteAssetsFromCloudinary = async (
         await cloudinary.uploader
             .destroy(id, { resource_type: resourceType })
             .then(() => {});
-    } catch (error) {}
+    } catch (error) {
+        console.log(error);
+        throw new ApiError(500, `Couldn't delete assets from cloudinary`);
+    }
 };
 export { uploadOnCloudinary, deleteAssetsFromCloudinary };
