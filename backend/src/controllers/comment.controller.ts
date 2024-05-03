@@ -18,6 +18,7 @@ const createComment = asyncHandler(async (req: Request, res: Response) => {
     }
     if (existingTweet) {
         req.body.tweet = existingTweet._id;
+        req.body.owner = req.user?._id;
         const parseRequestBody = commentSchema.safeParse(req.body);
         if (!parseRequestBody.success) {
             return res.status(400).json({
@@ -37,6 +38,8 @@ const createComment = asyncHandler(async (req: Request, res: Response) => {
 
     if (existingVideo) {
         req.body.video = existingVideo._id.toString();
+        req.body.owner = req.user?._id.toString();
+
         const parseRequestBody = commentSchema.safeParse(req.body);
         if (!parseRequestBody.success) {
             return res.status(400).json({
