@@ -192,6 +192,14 @@ const getVideoById = asyncHandler(async (req: Request, res: Response) => {
     ]);
 
     const subscriptionDetail = sub[0];
+
+    const updateView = await Video.findByIdAndUpdate(
+        videoId,
+        {
+            $inc: { views: 1 },
+        },
+        { new: true }
+    );
     res.status(200).json(
         new ApiResponse(200, 'Video by the id fetched successfully', {
             video,
