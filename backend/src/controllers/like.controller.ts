@@ -44,8 +44,6 @@ const toggleVideoLike = asyncHandler(async (req: Request, res: Response) => {
     ]);
 
     if (ifUserHasAlreadyLikedTheVideo.length > 0) {
-        console.log(ifUserHasAlreadyLikedTheVideo);
-        console.log('first');
         await Like.findByIdAndDelete(ifUserHasAlreadyLikedTheVideo[0]._id);
         res.status(200).json(
             new ApiResponse(200, `User's like has been removed`, {})
@@ -207,6 +205,7 @@ const getLikedVideos = asyncHandler(async (req: Request, res: Response) => {
         likedBy: req.user?._id,
         video: { $exists: true },
     });
+
     res.status(201).json(
         new ApiResponse(200, 'Vides liked by the user', {
             getAllVideosLikedByTheUser,
